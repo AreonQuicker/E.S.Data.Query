@@ -1,47 +1,70 @@
-﻿using E.S.Data.Query.DataAccess.Interfaces;
-using System;
-using System.Data;
+﻿using System.Data;
+using E.S.Data.Query.DataAccess.Interfaces;
 
 namespace E.S.Data.Query.DataAccess.Core
 {
-
-    public class DataCommand : DataAccessQuery, IDataAccessQuery, IDisposable, IDataCommand
+    public class DataCommand : DataAccessQuery, IDataCommand
     {
+        #region Fields
+
+        private readonly ICreateDbConnection createDbConnection;
+
+        #endregion
 
         #region Constructor
 
-        public DataCommand(ICreateDbConnection createDbConnection, bool keepConnectionClosed = true)
-            : base(createDbConnection, keepConnectionClosed)
+        public DataCommand(
+            ICreateDbConnection createDbConnection,
+            bool newConnectionOnEachProcess = true,
+            bool keepConnectionClosed = true)
+            : base(createDbConnection, newConnectionOnEachProcess, keepConnectionClosed)
         {
-            dbConnection = createDbConnection.CreateDbConnection();
+            this.createDbConnection = createDbConnection;
         }
+
         #endregion
 
-        #region IDataCommand    
+        #region IDisposable
+
+        public new void Dispose()
+        {
+            if (dbTransaction != null)
+            {
+                dbTransaction.Rollback();
+                dbTransaction.Dispose();
+                dbTransaction = null;
+            }
+
+            base.Dispose();
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private void OpenConnection()
+        {
+            if (dbConnection.State == ConnectionState.Closed) dbConnection.Open();
+        }
+
+        #endregion
+
+        #region IDataCommand
+
         public IDbConnection DbConnection => dbConnection;
 
         public void BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
         {
             if (dbTransaction != null) return;
 
-            if (dbConnection.State == System.Data.ConnectionState.Closed)
-                dbConnection.Open();
+            if (DbConnection == null) dbConnection = createDbConnection.CreateDbConnection();
 
+            OpenConnection();
+
+            newConnectionOnEachProcess = false;
             keepConnectionClosed = false;
 
             dbTransaction = dbConnection.BeginTransaction(level);
-        }
-
-        public void OpenConnection()
-        {
-            if (dbConnection.State == System.Data.ConnectionState.Closed)
-                dbConnection.Open();
-        }
-
-        public void CloseConnection()
-        {
-            if (dbConnection.State == System.Data.ConnectionState.Open)
-                dbConnection.Close();
         }
 
         public void Rollback()
@@ -51,7 +74,10 @@ namespace E.S.Data.Query.DataAccess.Core
             dbTransaction.Rollback();
             dbTransaction.Dispose();
             dbTransaction = null;
+
+            CloseConnection();
         }
+
         public void Commit()
         {
             if (dbTransaction == null) return;
@@ -63,20 +89,6 @@ namespace E.S.Data.Query.DataAccess.Core
             CloseConnection();
         }
 
-        #endregion
-
-        #region IDisposable
-        public void Dispose()
-        {
-            if (dbTransaction != null)
-            {
-                dbTransaction.Rollback();
-                dbTransaction.Dispose();
-                dbTransaction = null;
-            }
-
-            CloseConnection();
-        }
         #endregion
     }
 }

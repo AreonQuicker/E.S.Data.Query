@@ -1,35 +1,38 @@
-﻿using E.S.Data.Query.DataAccess.Interfaces;
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlClient;
+using E.S.Data.Query.DataAccess.Interfaces;
 
 namespace E.S.Data.Query.DataAccess.Core
 {
-
     public class CreateSQLDbConnection : ICreateDbConnection
     {
         #region Private Read Only Fields
-        private readonly string connectionString;
+
         #endregion
 
         #region Constructor
+
         public CreateSQLDbConnection(string connectionString)
         {
-            this.connectionString = connectionString;
+            this.ConnectionString = connectionString;
         }
+
         #endregion
 
         #region ICreateDbConnection
-        public string ConnectionString => connectionString;
+
+        public string ConnectionString { get; }
 
         IDbConnection ICreateDbConnection.CreateDbConnection()
         {
-            return new SqlConnection(connectionString);
+            return new SqlConnection(ConnectionString);
         }
 
         IDbConnection ICreateDbConnection.CreateDbConnection(string connectionString)
         {
             return new SqlConnection(connectionString);
         }
+
         #endregion
     }
 }

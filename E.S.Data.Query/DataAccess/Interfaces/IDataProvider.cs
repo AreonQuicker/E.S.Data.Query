@@ -2,7 +2,7 @@
 {
     public interface IDataProvider
     {
-        IDataCommand NewCommand(bool keepConnectionClosed = true);
+        IDataCommand NewCommand(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true);
         IDataCommand NewTransactionCommand();
     }
 }
