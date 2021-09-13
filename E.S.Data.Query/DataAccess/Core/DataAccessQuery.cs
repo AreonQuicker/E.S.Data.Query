@@ -13,45 +13,72 @@ namespace E.S.Data.Query.DataAccess.Core
     public class DataAccessQuery : IDataAccessQuery
     {
 
-        #region Protected Fields   
-        protected IDbTransaction dbTransaction;
-        private readonly ICreateDbConnection createDbConnection;
-        protected bool keepConnectionClosed;
-        #endregion
+        #region Fields   
         protected IDbConnection dbConnection;
+        protected IDbTransaction dbTransaction;
+        protected bool newConnectionOnEachProcess;
+        protected bool keepConnectionClosed;
+        private readonly ICreateDbConnection createDbConnection;
+        #endregion
 
         #region Constructor  
-        public DataAccessQuery(ICreateDbConnection createDbConnection, bool keepConnectionClosed = true)
+        public DataAccessQuery(
+            ICreateDbConnection createDbConnection,
+            bool newConnectionOnEachProcess = true,
+            bool keepConnectionClosed = true)
         {
             dbTransaction = null;
             this.createDbConnection = createDbConnection;
+            this.newConnectionOnEachProcess = newConnectionOnEachProcess;
             this.keepConnectionClosed = keepConnectionClosed;
+
+            if (!this.newConnectionOnEachProcess)
+            {
+                dbConnection = createDbConnection.CreateDbConnection();
+            }
+            else
+            {
+                this.keepConnectionClosed = true;
+            }
         }
         #endregion
 
         #region IDataAccessQuery
-       
-        public bool IsKeepConnectionClosed => this.keepConnectionClosed;
-        
-        public IDbConnection NewQueryConnection() => dbConnection ?? createDbConnection.CreateDbConnection();
+
+        public bool NewConnectionOnEachProcess => newConnectionOnEachProcess;
+
+        public (bool IsNew,IDbConnection Connection) NewQueryConnection()
+        {
+            if (dbConnection != null)
+                return (false, dbConnection);
+
+            return (true, createDbConnection.CreateDbConnection());
+        }
 
         public IEnumerable<T> List<T, P>(string procedureName, P param, int? commandTimeout = 700)
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Query<T>(
+            IEnumerable<T> result = QueryConnection.Connection.Query<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -61,18 +88,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Query<T>(
+            IEnumerable<T> result = QueryConnection.Connection.Query<T>(
                 procedureName,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -82,18 +116,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.QueryAsync<T>(
+            IEnumerable<T> result = await QueryConnection.Connection.QueryAsync<T>(
                 procedureName,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -103,19 +144,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Query<T>(
+            IEnumerable<T> result = QueryConnection.Connection.Query<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -125,19 +173,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.QueryAsync<T>(
+            IEnumerable<T> result = await QueryConnection.Connection.QueryAsync<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -147,19 +202,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.QueryAsync<T>(
+            IEnumerable<T> result = await QueryConnection.Connection.QueryAsync<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -169,13 +231,15 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
             IEnumerable<T1> First;
             IEnumerable<T2> Second;
 
-            using (var multi = QueryConnection.QueryMultiple(procedureName,
+            using (SqlMapper.GridReader multi = QueryConnection.Connection.QueryMultiple(procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: CommandType.StoredProcedure))
@@ -184,9 +248,14 @@ namespace E.S.Data.Query.DataAccess.Core
                 Second = multi.Read<T2>().ToList();
             }
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return (First, Second);
 
@@ -196,18 +265,109 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.QueryFirst<T>(
+            T result = QueryConnection.Connection.QueryFirst<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
+
+            return result;
+
+        }
+
+        public T FirstOrDefault<T, P>(string procedureName, P param)
+        {
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
+
+            T result = QueryConnection.Connection.QueryFirstOrDefault<T>(
+                procedureName,
+                param: param,
+                transaction: dbTransaction,
+                commandType: System.Data.CommandType.StoredProcedure);
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
+                && keepConnectionClosed)
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
+
+            return result;
+
+        }
+
+        public async Task<T> FirstAsync<T, P>(string procedureName, P param)
+        {
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
+
+            T result = await QueryConnection.Connection.QueryFirstAsync<T>(
+                procedureName,
+                param: param,
+                transaction: dbTransaction,
+                commandType: System.Data.CommandType.StoredProcedure);
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
+                && keepConnectionClosed)
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
+
+            return result;
+
+        }
+
+        public async Task<T> FirstOrDefaultAsync<T, P>(string procedureName, P param)
+        {
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
+
+            T result = await QueryConnection.Connection.QueryFirstOrDefaultAsync<T>(
+                procedureName,
+                param: param,
+                transaction: dbTransaction,
+                commandType: System.Data.CommandType.StoredProcedure);
+
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
+                && keepConnectionClosed)
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -217,18 +377,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.QueryFirst<T>(
+            T result = QueryConnection.Connection.QueryFirst<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -238,19 +405,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.ExecuteScalar<T>(
+            T result = QueryConnection.Connection.ExecuteScalar<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -260,19 +434,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteScalarAsync<T>(
+            T result = await QueryConnection.Connection.ExecuteScalarAsync<T>(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -281,19 +462,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -302,19 +490,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -323,19 +518,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -344,19 +546,26 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure,
                 commandTimeout: commandTimeout);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -365,18 +574,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -386,18 +602,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -407,18 +630,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -428,18 +658,25 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
 
@@ -449,25 +686,34 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            var param = new DynamicParameters();
+            DynamicParameters param = new DynamicParameters();
 
             param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
             if (extraParam != null)
+            {
                 param.AddDynamicParams(extraParam);
+            }
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -476,27 +722,36 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            var param = new DynamicParameters();
+            DynamicParameters param = new DynamicParameters();
 
-            var dt = list.ToDataTableAdvance();
+            DataTable dt = list.ToDataTableAdvance();
 
             param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
             if (extraParam != null)
+            {
                 param.AddDynamicParams(extraParam);
+            }
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -506,22 +761,31 @@ namespace E.S.Data.Query.DataAccess.Core
             var QueryConnection = NewQueryConnection();
 
             if (extraParam == null)
+            {
                 extraParam = new DynamicParameters();
+            }
 
             extraParam.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = QueryConnection.Execute(
+            int result = QueryConnection.Connection.Execute(
                 procedureName,
                 param: extraParam,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -530,25 +794,34 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            var param = new DynamicParameters();
+            DynamicParameters param = new DynamicParameters();
 
             param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
             if (extraParam != null)
+            {
                 param.AddDynamicParams(extraParam);
+            }
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -557,27 +830,36 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var QueryConnection = NewQueryConnection();
 
-            var param = new DynamicParameters();
+            DynamicParameters param = new DynamicParameters();
 
-            var dt = list.ToDataTableAdvance();
+            DataTable dt = list.ToDataTableAdvance();
 
             param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
             if (extraParam != null)
+            {
                 param.AddDynamicParams(extraParam);
+            }
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: param,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -587,22 +869,31 @@ namespace E.S.Data.Query.DataAccess.Core
             var QueryConnection = NewQueryConnection();
 
             if (extraParam == null)
+            {
                 extraParam = new DynamicParameters();
+            }
 
             extraParam.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
-            if (QueryConnection.State == System.Data.ConnectionState.Closed)
-                QueryConnection.Open();
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Closed)
+            {
+                QueryConnection.Connection.Open();
+            }
 
-            var result = await QueryConnection.ExecuteAsync(
+            int result = await QueryConnection.Connection.ExecuteAsync(
                 procedureName,
                 param: extraParam,
                 transaction: dbTransaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
-            if (QueryConnection.State == System.Data.ConnectionState.Open
+            if (QueryConnection.Connection.State == System.Data.ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Close();
+            {
+                QueryConnection.Connection.Close();
+            }
+
+            if (this.newConnectionOnEachProcess)
+                QueryConnection.Connection.Dispose();
 
             return result;
         }
@@ -615,6 +906,25 @@ namespace E.S.Data.Query.DataAccess.Core
         public IDataExecuteQuery NewDataExecuteQuery()
         {
             return new DataExecuteQuery(this);
+        }
+        #endregion
+
+        #region IDisposable
+        public void Dispose()
+        {
+            CloseConnection();
+        }
+        #endregion
+
+        #region Protected Methods
+
+        protected void CloseConnection()
+        {
+            if (dbConnection != null &&
+                dbConnection.State == System.Data.ConnectionState.Open)
+            {
+                dbConnection.Close();
+            }
         }
 
         #endregion

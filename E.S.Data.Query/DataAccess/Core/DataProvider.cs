@@ -19,14 +19,14 @@ namespace E.S.Data.Query.DataAccess.Core
 
         #region IDataProvider
 
-        public IDataCommand NewCommand(bool keepConnectionClosed = true)
+        public IDataCommand NewCommand(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true)
         {
-            return new DataCommand(createDbConnection, keepConnectionClosed);
+            return new DataCommand(createDbConnection, newConnectionOnEachProcess, keepConnectionClosed);
         }
 
         public IDataCommand NewTransactionCommand()
         {
-            var command = new DataCommand(createDbConnection);
+            DataCommand command = new DataCommand(createDbConnection, false, false);
 
             command.BeginTransaction();
 

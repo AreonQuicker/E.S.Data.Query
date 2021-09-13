@@ -73,7 +73,7 @@ namespace E.S.Data.Query.DataQuery.Core
             public IEnumerable<T> List<T>() where T : class, new()
             {
 
-                var result = dataCacheListQuery
+                IEnumerable<T> result = dataCacheListQuery
                     .Clear()
                     .SetDataCommandTimeOut(commandTimeout)
                     .UseCache(useCache)
@@ -89,7 +89,7 @@ namespace E.S.Data.Query.DataQuery.Core
 
             public async Task<IEnumerable<T>> ListAsync<T>() where T : class, new()
             {
-                var result = await dataCacheListQuery
+                IEnumerable<T> result = await dataCacheListQuery
                    .Clear()
                    .SetDataCommandTimeOut(commandTimeout)
                    .UseCache(useCache)

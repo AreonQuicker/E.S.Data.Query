@@ -10,7 +10,7 @@ namespace E.S.Data.Query.DataQuery.Core
         #region Private Read only Fields
 
         private readonly IDataProvider dataProvider;
-        private readonly ICacheManager cacheManager;
+        private readonly IMemoryCacheManager cacheManager;
 
         #endregion
 
@@ -18,8 +18,7 @@ namespace E.S.Data.Query.DataQuery.Core
 
         public DataQueryInstance(
             IDataProvider dataProvider,
-            Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
-            ICacheManager cacheManager
+            IMemoryCacheManager cacheManager
             )
         {
 
@@ -31,14 +30,15 @@ namespace E.S.Data.Query.DataQuery.Core
 
         #region IDataQueryInstance Methods
 
-        public IDataImportQuery NewDataImportQuery()
+        public IDataImportQuery NewDataImportQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true)
         {
-            return new DataImportQuery(dataProvider.NewCommand());
+            return new DataImportQuery(dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed));
         }
 
-        public IDataListQuery NewDataListQuery()
+        public IDataListQuery NewDataListQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true)
         {
-            var dataListCacheQuery = new DataCacheListQuery(cacheManager, dataProvider.NewCommand());
+            DataCacheListQuery dataListCacheQuery =
+                new DataCacheListQuery(cacheManager, dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed));
 
             return new DataListQuery(dataListCacheQuery);
         }

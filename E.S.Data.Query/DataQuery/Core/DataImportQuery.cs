@@ -58,7 +58,7 @@ namespace E.S.Data.Query.DataQuery.Core
 
             public async Task<int> ImportAsync()
             {
-                var result = await dataAccessQuery.ImportAsync(actionName, parameterName, parameterTableTypeName, dataTable, dynamicParameters);
+                int result = await dataAccessQuery.ImportAsync(actionName, parameterName, parameterTableTypeName, dataTable, dynamicParameters);
 
                 return result;
             }

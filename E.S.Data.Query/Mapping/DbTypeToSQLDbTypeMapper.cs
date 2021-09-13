@@ -40,7 +40,9 @@ namespace E.S.Data.Query.Mapping
         public static DbTypeToSQLDbTypeMapper GetInstance()
         {
             if (instance is null)
+            {
                 instance = new DbTypeToSQLDbTypeMapper();
+            }
 
             return instance;
         }
@@ -50,7 +52,9 @@ namespace E.S.Data.Query.Mapping
             type = default;
 
             if (!GetInstance().TypeMapping.Value.ContainsKey(dbType))
+            {
                 return false;
+            }
 
             type = GetInstance().TypeMapping.Value[dbType];
 

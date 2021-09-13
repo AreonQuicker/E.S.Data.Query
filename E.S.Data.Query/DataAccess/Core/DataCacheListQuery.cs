@@ -12,7 +12,7 @@ namespace E.S.Data.Query.DataAccess.Core
     public class DataCacheListQuery : IDataCacheListQuery
     {
         #region Private Read Only Fields
-        private readonly ICacheManager cacheManager;
+        private readonly IMemoryCacheManager cacheManager;
         private readonly IDataAccessQuery dataAccessQuery;
         #endregion
 
@@ -28,7 +28,7 @@ namespace E.S.Data.Query.DataAccess.Core
 
         #region Constructor
         public DataCacheListQuery(
-          ICacheManager cacheManager,
+          IMemoryCacheManager cacheManager,
           IDataAccessQuery dataAccessQuery
           )
         {
@@ -98,7 +98,9 @@ namespace E.S.Data.Query.DataAccess.Core
         public IDataCacheListQuery SetParameters<T>(T parameters)
         {
             if (parameters != null)
+            {
                 this.parameters = new DynamicParameters(parameters);
+            }
 
             return this;
         }
@@ -106,7 +108,9 @@ namespace E.S.Data.Query.DataAccess.Core
         public IDataCacheListQuery SetDynamicParameters(DynamicParameters parameters)
         {
             if (parameters is null)
+            {
                 return this;
+            }
 
             this.parameters = parameters;
 
@@ -117,12 +121,16 @@ namespace E.S.Data.Query.DataAccess.Core
         {
 
             if (dataCommandParameters is null)
+            {
                 return this;
+            }
 
             parameters = new DynamicParameters();
 
-            foreach (var dataCommandParameter in dataCommandParameters)
+            foreach (DataCommandParameter dataCommandParameter in dataCommandParameters)
+            {
                 parameters.Add(dataCommandParameter.Name, dataCommandParameter.Value, dataCommandParameter.DbType);
+            }
 
             return this;
         }
@@ -136,21 +144,25 @@ namespace E.S.Data.Query.DataAccess.Core
 
         public IEnumerable<T> List<T>() where T : class, new()
         {
-            var cacheKeys = GetCacheKeys();
-            var hashCode = GetHashCode(cacheKeys.ToArray());
+            IList<string> cacheKeys = GetCacheKeys();
+            string hashCode = GetHashCode(cacheKeys.ToArray());
 
             if (useCache && !ignoreGetCache && cacheManager != null)
             {
                 if (cacheManager.IsSet(hashCode))
+                {
                     return cacheManager.Get<IList<T>>(hashCode);
+                }
             }
 
-            var values = GetValues<T>();
+            IEnumerable<T> values = GetValues<T>();
 
             if (useCache && cacheManager != null)
             {
                 if (values != null)
+                {
                     cacheManager.Set(hashCode, values, GetCacheTime());
+                }
             }
 
             return values;
@@ -158,21 +170,25 @@ namespace E.S.Data.Query.DataAccess.Core
 
         public async Task<IEnumerable<T>> ListAsync<T>() where T : class, new()
         {
-            var cacheKeys = GetCacheKeys();
-            var hashCode = GetHashCode(cacheKeys.ToArray());
+            IList<string> cacheKeys = GetCacheKeys();
+            string hashCode = GetHashCode(cacheKeys.ToArray());
 
             if (useCache && !ignoreGetCache && cacheManager != null)
             {
                 if (cacheManager.IsSet(hashCode))
+                {
                     return cacheManager.Get<IList<T>>(hashCode);
+                }
             }
 
-            var values = await GetValuesAsync<T>();
+            IEnumerable<T> values = await GetValuesAsync<T>();
 
             if (useCache && cacheManager != null)
             {
                 if (values != null)
+                {
                     cacheManager.Set(hashCode, values, GetCacheTime());
+                }
             }
 
             return values;
@@ -190,7 +206,9 @@ namespace E.S.Data.Query.DataAccess.Core
         public virtual IEnumerable<T> GetValues<T>() where T : class, new()
         {
             if (parameters == null)
+            {
                 parameters = new DynamicParameters();
+            }
 
             return dataAccessQuery.List<T>(command, parameters, commandTimeout);
         }
@@ -198,32 +216,38 @@ namespace E.S.Data.Query.DataAccess.Core
         public virtual Task<IEnumerable<T>> GetValuesAsync<T>() where T : class, new()
         {
             if (parameters == null)
+            {
                 parameters = new DynamicParameters();
+            }
 
             return dataAccessQuery.ListAsync<T>(command, parameters, commandTimeout);
         }
 
         public virtual IList<string> GetCacheKeys()
         {
-            var keys = new List<string>();
+            List<string> keys = new List<string>();
 
             if (!string.IsNullOrEmpty(mainCacheyKey))
+            {
                 keys.Add($"mainCacheyKey={mainCacheyKey}");
+            }
 
             if (parameters != null
                 && (parameters.ParameterNames?.Any() ?? false))
             {
 
-                foreach (var name in parameters.ParameterNames)
+                foreach (string name in parameters.ParameterNames)
                 {
-                    var value = parameters.Get<object>(name);
+                    object value = parameters.Get<object>(name);
 
                     keys.Add($"parameterName:{name}=parameterValue:{value ?? ""}");
                 }
             }
 
             if (!string.IsNullOrEmpty(command))
+            {
                 keys.Add($"command={command}");
+            }
 
             return keys;
         }
@@ -231,7 +255,9 @@ namespace E.S.Data.Query.DataAccess.Core
         public virtual int GetCacheTime()
         {
             if (cacheTime.HasValue)
+            {
                 return cacheTime.Value;
+            }
 
             return 0;
         }

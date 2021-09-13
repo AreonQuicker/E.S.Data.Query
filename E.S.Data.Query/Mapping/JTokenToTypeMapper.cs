@@ -31,7 +31,9 @@ namespace E.S.Data.Query.Mapping
         public static JTokenToTypeMapper GetInstance()
         {
             if (instance is null)
+            {
                 instance = new JTokenToTypeMapper();
+            }
 
             return instance;
         }
@@ -41,7 +43,9 @@ namespace E.S.Data.Query.Mapping
             type = default;
 
             if (!GetInstance().TypeMapping.Value.ContainsKey(jTokenType))
+            {
                 return false;
+            }
 
             type = GetInstance().TypeMapping.Value[jTokenType];
 

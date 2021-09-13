@@ -19,7 +19,7 @@ namespace E.S.Data.Query.DataAccess.Interfaces
 
         IDataCacheListQuery SetDataCommand(string command);
 
-        IDataCacheListQuery SetParameters<T>(T parameters);      
+        IDataCacheListQuery SetParameters<T>(T parameters);
 
         IDataCacheListQuery SetDynamicParameters(DynamicParameters parameters);
         IDataCacheListQuery SetParameters(params DataCommandParameter[] dataCommandParameters);

@@ -2,7 +2,7 @@
 {
     public interface IDataQueryInstance
     {
-        IDataImportQuery NewDataImportQuery();
-        IDataListQuery NewDataListQuery();
+        IDataImportQuery NewDataImportQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true);
+        IDataListQuery NewDataListQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true);
     }
 }

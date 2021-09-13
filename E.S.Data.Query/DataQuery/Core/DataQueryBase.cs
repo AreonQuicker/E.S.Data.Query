@@ -54,21 +54,27 @@ namespace E.S.Data.Query.DataQuery.Core
             protected void AddDynamicParameter(DbType dbType, string name, object value, ParameterDirection direction = ParameterDirection.Output, int? size = null)
             {
                 if (direction == ParameterDirection.Output)
+                {
                     dynamicParameters.Add($"@{name.ToCaseStyle(caseStyleType)}", dbType: dbType, direction: direction, size: size);
+                }
                 else
+                {
                     dynamicParameters.Add($"@{name.ToCaseStyle(caseStyleType)}", value, dbType, direction);
+                }
             }
 
             protected void SetOutParameterValues()
             {
                 outParameterValues = new Dictionary<string, object>();
 
-                foreach (var outParameter in outParameters)
+                foreach (KeyValuePair<string, DbType> outParameter in outParameters)
                 {
-                    var value = dynamicParameters.Get<object>(outParameter.Key.ToCaseStyle(caseStyleType));
+                    object value = dynamicParameters.Get<object>(outParameter.Key.ToCaseStyle(caseStyleType));
 
                     if (value != null)
+                    {
                         outParameterValues.Add(outParameter.Key, value);
+                    }
                 }
             }
             #endregion
@@ -104,10 +110,14 @@ namespace E.S.Data.Query.DataQuery.Core
             {
 
                 if (string.IsNullOrEmpty(name))
+                {
                     return this;
+                }
 
-                if (!TypeToDbTypeMapper.TryToGetType(type, out var dbType))
+                if (!TypeToDbTypeMapper.TryToGetType(type, out DbType dbType))
+                {
                     return this;
+                }
 
                 AddOutParameter(dbType, name, size);
 
@@ -117,7 +127,9 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddOutParameter(System.Data.DbType dbType, string name, int? size = null)
             {
                 if (string.IsNullOrEmpty(name))
+                {
                     return this;
+                }
 
                 outParameters.Add(name, dbType);
                 AddDynamicParameter(dbType, name, null, ParameterDirection.Output, size);
@@ -128,10 +140,14 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddParameter(Type type, string name, object value)
             {
                 if (value is null || string.IsNullOrEmpty(name))
+                {
                     return this;
+                }
 
-                if (!TypeToDbTypeMapper.TryToGetType(type, out var dbType))
+                if (!TypeToDbTypeMapper.TryToGetType(type, out DbType dbType))
+                {
                     return this;
+                }
 
                 AddParameter(dbType, name, value);
 
@@ -141,7 +157,9 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddParameter(DbType dbType, string name, object value)
             {
                 if (value is null || string.IsNullOrEmpty(name))
+                {
                     return this;
+                }
 
                 parameters.Add(name, (dbType, value));
                 AddDynamicParameter(dbType, name, value, ParameterDirection.Input);
@@ -151,16 +169,20 @@ namespace E.S.Data.Query.DataQuery.Core
 
             public IDataQuery AddParameters(params (Type Type, string Name, object Value)[] parameters)
             {
-                foreach (var parameter in parameters)
+                foreach ((Type Type, string Name, object Value) parameter in parameters)
+                {
                     AddParameter(parameter.Type, parameter.Name, parameter.Value);
+                }
 
                 return this;
             }
 
             public IDataQuery AddParameters(params (DbType Type, string Name, object Value)[] parameters)
             {
-                foreach (var parameter in parameters)
+                foreach ((DbType Type, string Name, object Value) parameter in parameters)
+                {
                     AddParameter(parameter.Type, parameter.Name, parameter.Value);
+                }
 
                 return this;
             }
@@ -170,16 +192,18 @@ namespace E.S.Data.Query.DataQuery.Core
             {
 
                 if (item is null)
-                    return this;
-
-                var properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-                foreach (var pi in properties)
                 {
-                    var parameterAttribute = (pi.GetCustomAttributes(typeof(ParameterAttribute), false).FirstOrDefault()) as ParameterAttribute;
+                    return this;
+                }
+
+                PropertyInfo[] properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                foreach (PropertyInfo pi in properties)
+                {
+                    ParameterAttribute parameterAttribute = (pi.GetCustomAttributes(typeof(ParameterAttribute), false).FirstOrDefault()) as ParameterAttribute;
                     if (!((pi.GetCustomAttributes(typeof(IgnoreParameterAttribute), false).FirstOrDefault()) is IgnoreParameterAttribute))
                     {
-                        var name = parameterAttribute?.GetName() ?? pi.Name;
+                        string name = parameterAttribute?.GetName() ?? pi.Name;
 
                         AddParameter(pi.PropertyType, name, pi.GetValue(item, null));
                     }
@@ -198,10 +222,14 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddParameter(string name, JToken item)
             {
                 if (item is null)
+                {
                     return this;
+                }
 
-                if (!JTokenToTypeMapper.TryToGetType(item.Type, out var type))
+                if (!JTokenToTypeMapper.TryToGetType(item.Type, out Type type))
+                {
                     return this;
+                }
 
                 AddParameter(type, name, item.ToObject(type));
 
@@ -211,10 +239,14 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddParameters(JObject item)
             {
                 if (item is null)
+                {
                     return this;
+                }
 
-                foreach (var x in item)
+                foreach (KeyValuePair<string, JToken> x in item)
+                {
                     AddParameter(x.Key, x.Value);
+                }
 
                 return this;
             }
@@ -222,10 +254,14 @@ namespace E.S.Data.Query.DataQuery.Core
             public IDataQuery AddParameters(params DataCommandParameter[] dataCommandParameters)
             {
                 if (dataCommandParameters is null)
+                {
                     return this;
+                }
 
-                foreach (var dataCommandParameter in dataCommandParameters)                
-                    AddParameter(dataCommandParameter.DbType, dataCommandParameter.Name, dataCommandParameter.Value);                
+                foreach (DataCommandParameter dataCommandParameter in dataCommandParameters)
+                {
+                    AddParameter(dataCommandParameter.DbType, dataCommandParameter.Name, dataCommandParameter.Value);
+                }
 
                 return this;
             }

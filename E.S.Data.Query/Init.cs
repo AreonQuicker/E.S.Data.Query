@@ -9,20 +9,39 @@ namespace E.S.Data.Query
 {
     public static class Init
     {
-        public static void AddDataQuery(this IServiceCollection services, string connectionString)
+        public static void AddDataQuery(
+            this IServiceCollection services,
+            string connectionString,
+            bool newConnectionOnEachProcess = true,
+            bool keepConnectionClosed = true,
+            bool addAsTransient = true)
         {
             services.AddSimpleMemoryCache();
 
-            services.AddSingleton<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
+            services.AddScoped<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
 
-            services.AddTransient<IDataConnection, DataConnection>();
+            services.AddScoped<IDataConnection, DataConnection>();
 
-            services.AddTransient<IDataProvider, DataProvider>();
+            services.AddScoped<IDataProvider, DataProvider>();
 
-            services.AddTransient<IDataAccessQuery, DataAccessQuery>();
+            if (addAsTransient)
+            {
+                services.AddTransient<IDataAccessQuery>(s =>
+                new DataAccessQuery(
+                    s.GetService<ICreateDbConnection>(),
+                    newConnectionOnEachProcess,
+                    keepConnectionClosed));
+            }
+            else
+            {
+                services.AddScoped<IDataAccessQuery>(s =>
+                new DataAccessQuery(
+                   s.GetService<ICreateDbConnection>(),
+                   newConnectionOnEachProcess,
+                   keepConnectionClosed));
+            }
 
             services.AddTransient<IDataCacheListQuery, DataCacheListQuery>();
-
             services.AddTransient<IDataQueryInstance, DataQueryInstance>();
         }
     }

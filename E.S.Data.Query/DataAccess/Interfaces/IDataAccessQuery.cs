@@ -1,14 +1,15 @@
 ﻿using Dapper;
 using E.S.Data.Query.DataQuery.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
 namespace E.S.Data.Query.DataAccess.Interfaces
 {
-    public interface IDataAccessQuery
+    public interface IDataAccessQuery : IDisposable
     {
-    
+
         int Execute(string procedureName, DynamicParameters param, int? commandTimeout = 700);
         int Execute<P>(string procedureName, P param, int? commandTimeout = 700);
         Task<int> ExecuteAsync(string procedureName, DynamicParameters param, int? commandTimeout = 700);
@@ -20,6 +21,9 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         T ExecuteScalar<T, P>(string procedureName, P param, int? commandTimeout = 700);
         Task<T> ExecuteScalarAsync<T, P>(string procedureName, P param, int? commandTimeout = 700);
         T First<T, P>(string procedureName, P param);
+        Task<T> FirstAsync<T, P>(string procedureName, P param);
+        T FirstOrDefault<T, P>(string procedureName, P param);
+        Task<T> FirstOrDefaultAsync<T, P>(string procedureName, P param);
         T First<T>(string procedureName, DynamicParameters param);
         IEnumerable<T> List<T, P>(string procedureName, P param, int? commandTimeout = 700);
         IEnumerable<T> List<T>(string procedureName, DynamicParameters param, int? commandTimeout = 700);
@@ -36,6 +40,6 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         Task<IEnumerable<T>> ListAsync<T>(string procedureName, int? commandTimeout = 700);
         IDataImportQuery NewDataImportQuery();
         IDataExecuteQuery NewDataExecuteQuery();
-        bool IsKeepConnectionClosed { get; }
+        bool NewConnectionOnEachProcess { get; }
     }
 }
