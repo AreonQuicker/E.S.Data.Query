@@ -21,7 +21,7 @@ namespace E.S.Data.Query.DataAccess.Core
         private string mainCacheyKey = null;
         private string command = null;
         private DynamicParameters parameters = null;
-        private bool useCache = true;
+        private bool useCache = false;
         private bool ignoreGetCache = false;
         private int? commandTimeout = null;
         #endregion
@@ -56,6 +56,7 @@ namespace E.S.Data.Query.DataAccess.Core
             command = null;
             cacheTime = null;
             mainCacheyKey = null;
+            ignoreGetCache = false;
 
             return this;
         }

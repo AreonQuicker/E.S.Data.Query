@@ -2,11 +2,11 @@
 {
 
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public sealed class ParameterAttribute : System.Attribute
+    public sealed class DataAccessFieldAttribute : System.Attribute
     {
         private readonly string Name;
 
-        public ParameterAttribute(string name = null)
+        public DataAccessFieldAttribute(string name = null)
         {
             Name = name;
         }

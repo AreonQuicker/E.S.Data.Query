@@ -1,9 +1,9 @@
 ﻿using Dapper;
 using E.S.Common.Helpers.Enums;
 using E.S.Common.Helpers.Extensions;
-using E.S.Data.Query.Attributes;
 using E.S.Data.Query.DataAccess.Interfaces;
 using E.S.Data.Query.DataQuery.Interfaces;
+using E.S.Data.Query.Extensions;
 using E.S.Data.Query.Mapping;
 using E.S.Data.Query.Models;
 using Newtonsoft.Json.Linq;
@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 
 namespace E.S.Data.Query.DataQuery.Core
 {
@@ -29,7 +28,7 @@ namespace E.S.Data.Query.DataQuery.Core
             protected Dictionary<string, object> outParameterValues;
             protected Dictionary<string, DbType> outParameters;
             protected Dictionary<string, (DbType DbType, object Value)> parameters;
-            protected string actionName;
+            protected string actionName = null;
             protected CaseStyleType caseStyleType = CaseStyleType.None;
             protected DynamicParameters dynamicParameters;
             #endregion
@@ -82,10 +81,10 @@ namespace E.S.Data.Query.DataQuery.Core
             #region IQuery Methods
             public IDataQuery Clear()
             {
-                outParameterValues = new Dictionary<string, object>();
+                outParameterValues.Clear();
                 dynamicParameters = new DynamicParameters();
-                parameters = new Dictionary<string, (DbType DbType, object Value)>();
-                outParameters = new Dictionary<string, DbType>();
+                parameters.Clear();
+                outParameters.Clear();
                 actionName = null;
                 caseStyleType = CaseStyleType.None;
 
@@ -137,6 +136,31 @@ namespace E.S.Data.Query.DataQuery.Core
                 return this;
             }
 
+            public IDataQuery AddParameter(DbType dbType, string name, object value)
+            {
+                if (value is null || string.IsNullOrEmpty(name))
+                {
+                    return this;
+                }
+
+                parameters.Add(name, (dbType, value));
+                AddDynamicParameter(dbType, name, value, ParameterDirection.Input);
+
+                return this;
+            }
+
+            public IDataQuery AddParameter(DataCommandParameter dataCommandParameter)
+            {
+                if (dataCommandParameter is null)
+                {
+                    return this;
+                }
+
+                AddParameter(dataCommandParameter.DbType, dataCommandParameter.Name, dataCommandParameter.Value);
+
+                return this;
+            }
+
             public IDataQuery AddParameter(Type type, string name, object value)
             {
                 if (value is null || string.IsNullOrEmpty(name))
@@ -150,19 +174,6 @@ namespace E.S.Data.Query.DataQuery.Core
                 }
 
                 AddParameter(dbType, name, value);
-
-                return this;
-            }
-
-            public IDataQuery AddParameter(DbType dbType, string name, object value)
-            {
-                if (value is null || string.IsNullOrEmpty(name))
-                {
-                    return this;
-                }
-
-                parameters.Add(name, (dbType, value));
-                AddDynamicParameter(dbType, name, value, ParameterDirection.Input);
 
                 return this;
             }
@@ -196,18 +207,9 @@ namespace E.S.Data.Query.DataQuery.Core
                     return this;
                 }
 
-                PropertyInfo[] properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                List<DataCommandParameter> dataCommandParameters = item.ToInputDataCommandParameters();
 
-                foreach (PropertyInfo pi in properties)
-                {
-                    ParameterAttribute parameterAttribute = (pi.GetCustomAttributes(typeof(ParameterAttribute), false).FirstOrDefault()) as ParameterAttribute;
-                    if (!((pi.GetCustomAttributes(typeof(IgnoreParameterAttribute), false).FirstOrDefault()) is IgnoreParameterAttribute))
-                    {
-                        string name = parameterAttribute?.GetName() ?? pi.Name;
-
-                        AddParameter(pi.PropertyType, name, pi.GetValue(item, null));
-                    }
-                }
+                AddParameters(dataCommandParameters.ToList());
 
                 return this;
             }
