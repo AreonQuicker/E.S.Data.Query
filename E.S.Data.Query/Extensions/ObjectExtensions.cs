@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace E.S.Data.Query.Extensions
 {
@@ -14,19 +15,19 @@ namespace E.S.Data.Query.Extensions
 
         public static List<DataCommandParameter> ToInputDataCommandParameters(this object item)
         {
-            List<DataCommandParameter> dataCommandParameters = new List<DataCommandParameter>();
-
             if (item is null)
             {
                 return new List<DataCommandParameter>();
             }
 
+            List<DataCommandParameter> dataCommandParameters = new List<DataCommandParameter>();
+
             PropertyInfo[] properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            foreach (PropertyInfo pi in properties)
+            foreach (var pi in properties)
             {
                 DataAccessFieldAttribute parameterAttribute
-                    = (pi.GetCustomAttributes(typeof(DataAccessFieldAttribute), false).FirstOrDefault()) as DataAccessFieldAttribute;
+                                   = (pi.GetCustomAttributes(typeof(DataAccessFieldAttribute), false).FirstOrDefault()) as DataAccessFieldAttribute;
 
                 if (!((pi.GetCustomAttributes(typeof(DataAccessIgnoredFieldAttribute), false).FirstOrDefault()) is DataAccessIgnoredFieldAttribute))
                 {
@@ -34,14 +35,12 @@ namespace E.S.Data.Query.Extensions
                     object value = pi.GetValue(item);
                     System.Type propertyType = pi.PropertyType;
 
-                    if (!TypeToDbTypeMapper.TryToGetType(propertyType, out DbType dbType))
+                    if (TypeToDbTypeMapper.TryToGetType(propertyType, out DbType dbType))
                     {
-                        continue;
+                        dataCommandParameters.Add(new DataCommandParameter(name, dbType, value));
                     }
-
-                    dataCommandParameters.Add(new DataCommandParameter(name, dbType, value));
                 }
-            }
+            }               
 
             return dataCommandParameters;
         }
