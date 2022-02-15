@@ -1,7 +1,5 @@
-﻿using E.S.Data.Query.DataAccess.Core;
-using E.S.Data.Query.DataAccess.Interfaces;
+﻿using E.S.Data.Query.DataAccess.Interfaces;
 using E.S.Data.Query.DataQuery.Interfaces;
-using E.S.Simple.MemoryCache.Interfaces;
 
 namespace E.S.Data.Query.DataQuery.Core
 {
@@ -10,37 +8,34 @@ namespace E.S.Data.Query.DataQuery.Core
         #region Private Read only Fields
 
         private readonly IDataProvider dataProvider;
-        private readonly IMemoryCacheManager cacheManager;
 
         #endregion
 
-        #region Constructor      
+        #region Constructor
 
         public DataQueryInstance(
-            IDataProvider dataProvider,
-            IMemoryCacheManager cacheManager
-            )
+            IDataProvider dataProvider
+        )
         {
-
             this.dataProvider = dataProvider;
-            this.cacheManager = cacheManager;
         }
 
         #endregion
 
         #region IDataQueryInstance Methods
 
-        public IDataImportQuery NewDataImportQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true)
+        public IDataExecuteQuery NewDataExecuteQuery(bool newConnectionOnEachProcess = true,
+            bool keepConnectionClosed = true)
         {
-            return new DataImportQuery(dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed));
+            return new DataExecuteQuery(dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed),
+                true);
         }
 
-        public IDataListQuery NewDataListQuery(bool newConnectionOnEachProcess = true, bool keepConnectionClosed = true)
-        {
-            DataCacheListQuery dataListCacheQuery =
-                new DataCacheListQuery(cacheManager, dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed));
 
-            return new DataListQuery(dataListCacheQuery);
+        public IDataImportQuery NewDataImportQuery(bool newConnectionOnEachProcess = true,
+            bool keepConnectionClosed = true)
+        {
+            return new DataImportQuery(dataProvider.NewCommand(newConnectionOnEachProcess, keepConnectionClosed), true);
         }
 
         #endregion

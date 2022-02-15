@@ -1,70 +1,61 @@
-﻿using Dapper;
-using E.S.Data.Query.Attributes;
-using E.S.Data.Query.Mapping;
-using E.S.Data.Query.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
+using Dapper;
+using E.S.Data.Query.Attributes;
+using E.S.Data.Query.Mapping;
+using E.S.Data.Query.Models;
 
 namespace E.S.Data.Query.Extensions
 {
-    public static class ObjectExtensions
+    internal static class ObjectExtensions
     {
-
         public static List<DataCommandParameter> ToInputDataCommandParameters(this object item)
         {
-            if (item is null)
-            {
-                return new List<DataCommandParameter>();
-            }
+            if (item is null) return new List<DataCommandParameter>();
 
-            List<DataCommandParameter> dataCommandParameters = new List<DataCommandParameter>();
+            var dataCommandParameters = new List<DataCommandParameter>();
 
-            PropertyInfo[] properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (var pi in properties)
             {
-                DataAccessFieldAttribute parameterAttribute
-                                   = (pi.GetCustomAttributes(typeof(DataAccessFieldAttribute), false).FirstOrDefault()) as DataAccessFieldAttribute;
+                var parameterAttribute
+                    = pi.GetCustomAttributes(typeof(DataQueryFieldAttribute), false).FirstOrDefault() as
+                        DataQueryFieldAttribute;
 
-                if (!((pi.GetCustomAttributes(typeof(DataAccessIgnoredFieldAttribute), false).FirstOrDefault()) is DataAccessIgnoredFieldAttribute))
+                if (!(pi.GetCustomAttributes(typeof(DataQueryIgnoredFieldAttribute), false).FirstOrDefault() is
+                    DataQueryIgnoredFieldAttribute))
                 {
-                    string name = parameterAttribute?.GetName() ?? pi.Name;
-                    object value = pi.GetValue(item);
-                    System.Type propertyType = pi.PropertyType;
+                    var name = parameterAttribute?.GetName() ?? pi.Name;
+                    var value = pi.GetValue(item);
+                    var propertyType = pi.PropertyType;
 
-                    if (TypeToDbTypeMapper.TryToGetType(propertyType, out DbType dbType))
-                    {
+                    if (TypeToDbTypeMapper.TryToGetType(propertyType, out var dbType))
                         dataCommandParameters.Add(new DataCommandParameter(name, dbType, value));
-                    }
                 }
-            }               
+            }
 
             return dataCommandParameters;
         }
 
         public static DynamicParameters ToInputDynamicParameters(this object item)
         {
-            if (item is null)
-            {
-                return null;
-            }
+            if (item is null) return null;
 
-            if (item is DynamicParameters d)
-            {
-                return d;
-            }
+            if (item is DynamicParameters d) return d;
 
-            DynamicParameters dynamicParameters = new DynamicParameters();
+            if (item.GetType().GetCustomAttribute<DataQueryAttribute>() is null)
+                return new DynamicParameters(item);
 
-            List<DataCommandParameter> dataCommandParms = item.ToInputDataCommandParameters();
+            var dynamicParameters = new DynamicParameters();
 
-            foreach (DataCommandParameter dataCommandParm in dataCommandParms)
-            {
-                dynamicParameters.Add(dataCommandParm.Name, dataCommandParm.Value, dataCommandParm.DbType, ParameterDirection.Input);
-            }
+            var dataCommandParms = item.ToInputDataCommandParameters();
+
+            foreach (var dataCommandParm in dataCommandParms)
+                dynamicParameters.Add(dataCommandParm.Name, dataCommandParm.Value, dataCommandParm.DbType,
+                    ParameterDirection.Input);
 
             return dynamicParameters;
         }

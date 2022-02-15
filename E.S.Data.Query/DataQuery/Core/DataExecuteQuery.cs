@@ -1,6 +1,6 @@
-﻿using E.S.Data.Query.DataAccess.Interfaces;
+﻿using System.Threading.Tasks;
+using E.S.Data.Query.DataAccess.Interfaces;
 using E.S.Data.Query.DataQuery.Interfaces;
-using System.Threading.Tasks;
 
 namespace E.S.Data.Query.DataQuery.Core
 {
@@ -8,23 +8,33 @@ namespace E.S.Data.Query.DataQuery.Core
     {
         public class DataExecuteQuery : DataQueryBase, IDataExecuteQuery
         {
+            private readonly bool disposeDataAccessQuery;
 
-            #region Private Fields         
-            #endregion
-
-            #region Constructor      
+            #region Constructor
 
             public DataExecuteQuery(
-                 IDataAccessQuery dataAccessQuery
-                )
+                IDataAccessQuery dataAccessQuery,
+                bool disposeDataAccessQuery = false
+            )
                 : base(dataAccessQuery)
             {
-
+                this.disposeDataAccessQuery = disposeDataAccessQuery;
             }
 
-            #endregion     
+            #endregion
 
-            #region IQuery Methods      
+            #region Private Fields
+
+            #endregion
+
+            #region IQuery Methods
+
+            public void Dispose()
+            {
+                Clear();
+                if (disposeDataAccessQuery)
+                    dataAccessQuery.Dispose();
+            }
 
             public int Execute()
             {
@@ -35,6 +45,7 @@ namespace E.S.Data.Query.DataQuery.Core
             {
                 return dataAccessQuery.ExecuteAsync(actionName, dynamicParameters);
             }
+
             #endregion
         }
     }

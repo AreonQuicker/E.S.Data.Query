@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace E.S.Data.Query.Mapping
 {
-    public class JTokenToTypeMapper
+    internal class JTokenToTypeMapper
     {
         private static JTokenToTypeMapper instance;
         public readonly Lazy<Dictionary<JTokenType, Type>> TypeMapping;
@@ -24,16 +24,12 @@ namespace E.S.Data.Query.Mapping
                 [JTokenType.Boolean] = typeof(bool),
                 [JTokenType.Guid] = typeof(Guid),
                 [JTokenType.Date] = typeof(DateTime)
-
             };
         }
 
         public static JTokenToTypeMapper GetInstance()
         {
-            if (instance is null)
-            {
-                instance = new JTokenToTypeMapper();
-            }
+            if (instance is null) instance = new JTokenToTypeMapper();
 
             return instance;
         }
@@ -42,10 +38,7 @@ namespace E.S.Data.Query.Mapping
         {
             type = default;
 
-            if (!GetInstance().TypeMapping.Value.ContainsKey(jTokenType))
-            {
-                return false;
-            }
+            if (!GetInstance().TypeMapping.Value.ContainsKey(jTokenType)) return false;
 
             type = GetInstance().TypeMapping.Value[jTokenType];
 

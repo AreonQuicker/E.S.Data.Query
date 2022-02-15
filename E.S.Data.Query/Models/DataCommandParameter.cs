@@ -12,8 +12,7 @@ namespace E.S.Data.Query.Models
         }
 
         public string Name { get; set; }
-        public System.Data.DbType DbType { get; set; }
+        public DbType DbType { get; set; }
         public object Value { get; set; }
     }
 }
-

@@ -1,39 +1,50 @@
-﻿using E.S.Common.Helpers.Extensions;
-using E.S.Data.Query.DataAccess.Interfaces;
-using E.S.Data.Query.DataQuery.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using E.S.Common.Helpers.Extensions;
+using E.S.Data.Query.DataAccess.Interfaces;
+using E.S.Data.Query.DataQuery.Interfaces;
 
 namespace E.S.Data.Query.DataQuery.Core
 {
-
     public partial class DataQueryInstance
     {
         public class DataImportQuery : DataQueryBase, IDataImportQuery
         {
+            private readonly bool disposeDataAccessQuery;
 
-            #region Private Fields         
+            #region Constructor
+
+            public DataImportQuery(
+                IDataAccessQuery dataAccessQuery,
+                bool disposeDataAccessQuery = false
+            )
+                : base(dataAccessQuery)
+            {
+                this.disposeDataAccessQuery = disposeDataAccessQuery;
+            }
+
+            #endregion
+
+            #region Private Fields
+
             private string parameterName;
             private string parameterTableTypeName;
             private DataTable dataTable;
+
             #endregion
 
-            #region Constructor      
+            #region IQuery Methods
 
-            public DataImportQuery(
-                IDataAccessQuery dataAccessQuery
-                )
-                : base(dataAccessQuery)
+            public void Dispose()
             {
-
+                Clear();
+                if (disposeDataAccessQuery)
+                    dataAccessQuery.Dispose();
             }
 
-            #endregion  
-
-            #region IQuery Methods        
-
-            public IDataImportQuery SetImportValue(DataTable dataTable, string parameterName, string parameterTableTypeName)
+            public IDataImportQuery SetImportValue(DataTable dataTable, string parameterName,
+                string parameterTableTypeName)
             {
                 this.parameterName = parameterName;
                 this.parameterTableTypeName = parameterTableTypeName;
@@ -42,7 +53,8 @@ namespace E.S.Data.Query.DataQuery.Core
                 return this;
             }
 
-            public IDataImportQuery SetImportValue<T>(IList<T> list, string parameterName, string parameterTableTypeName)
+            public IDataImportQuery SetImportValue<T>(IList<T> list, string parameterName,
+                string parameterTableTypeName)
             {
                 this.parameterName = parameterName;
                 this.parameterTableTypeName = parameterTableTypeName;
@@ -53,12 +65,14 @@ namespace E.S.Data.Query.DataQuery.Core
 
             public int Import()
             {
-                return dataAccessQuery.Import(actionName, parameterName, parameterTableTypeName, dataTable, dynamicParameters);
+                return dataAccessQuery.Import(actionName, parameterName, parameterTableTypeName, dataTable,
+                    dynamicParameters);
             }
 
             public async Task<int> ImportAsync()
             {
-                int result = await dataAccessQuery.ImportAsync(actionName, parameterName, parameterTableTypeName, dataTable, dynamicParameters);
+                var result = await dataAccessQuery.ImportAsync(actionName, parameterName, parameterTableTypeName,
+                    dataTable, dynamicParameters);
 
                 return result;
             }

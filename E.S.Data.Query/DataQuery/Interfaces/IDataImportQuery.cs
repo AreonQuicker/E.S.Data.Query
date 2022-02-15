@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
 namespace E.S.Data.Query.DataQuery.Interfaces
 {
-    public interface IDataImportQuery : IDataQuery
+    public interface IDataImportQuery : IDataQuery, IDisposable
     {
         IDataImportQuery SetImportValue(DataTable dataTable, string parameterName, string parameterTableTypeName);
 

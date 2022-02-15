@@ -4,7 +4,7 @@ using System.Data;
 
 namespace E.S.Data.Query.Mapping
 {
-    public class TypeToDbTypeMapper
+    internal class TypeToDbTypeMapper
     {
         private static TypeToDbTypeMapper instance;
         public readonly Lazy<Dictionary<Type, DbType>> TypeMapping;
@@ -57,10 +57,7 @@ namespace E.S.Data.Query.Mapping
 
         public static TypeToDbTypeMapper GetInstance()
         {
-            if (instance is null)
-            {
-                instance = new TypeToDbTypeMapper();
-            }
+            if (instance is null) instance = new TypeToDbTypeMapper();
 
             return instance;
         }
@@ -69,10 +66,7 @@ namespace E.S.Data.Query.Mapping
         {
             dbType = default;
 
-            if (!GetInstance().TypeMapping.Value.ContainsKey(type))
-            {
-                return false;
-            }
+            if (!GetInstance().TypeMapping.Value.ContainsKey(type)) return false;
 
             dbType = GetInstance().TypeMapping.Value[type];
 

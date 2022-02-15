@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace E.S.Data.Query.DataQuery.Interfaces
 {
-    public interface IDataExecuteQuery : IDataQuery
+    public interface IDataExecuteQuery : IDataQuery, IDisposable
     {
         int Execute();
 

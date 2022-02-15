@@ -2,14 +2,16 @@
 
 namespace E.S.Data.Query.DataAccess.Core
 {
-
     public class DataProvider : IDataProvider
     {
         #region Private Read Only
+
         private readonly ICreateDbConnection createDbConnection;
+
         #endregion
 
         #region Constructor
+
         public DataProvider(ICreateDbConnection createDbConnection)
         {
             this.createDbConnection = createDbConnection;
@@ -26,7 +28,7 @@ namespace E.S.Data.Query.DataAccess.Core
 
         public IDataCommand NewTransactionCommand()
         {
-            DataCommand command = new DataCommand(createDbConnection, false, false);
+            var command = new DataCommand(createDbConnection, false, false);
 
             command.BeginTransaction();
 
