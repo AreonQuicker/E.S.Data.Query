@@ -84,17 +84,14 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         int Import<P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
             object extraParam = null);
 
-        int Import(string procedureName, string paramName, string paramTableTypeName, DataTable dt,
-            DynamicParameters extraParam = null);
-
         //ImportAsync
-        Task<int> ImportAsync(string procedureName, string paramName, string paramTableTypeName, DataTable dt,
-            DynamicParameters extraParam = null);
-
         Task<int> ImportAsync(string procedureName, string paramName, string paramTableTypeName, DataTable dt,
             object extraParam = null);
 
         Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
+            object extraParam = null);
+        
+        Task<IEnumerable<T>> ListAsync<T,P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
             object extraParam = null);
 
         //ListQueryAsync

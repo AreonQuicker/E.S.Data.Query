@@ -477,17 +477,37 @@ namespace E.S.Data.Query.DataAccess.Core
                 .GetResult();
         }
 
-        public int Import(string procedureName, string paramName, string paramTableTypeName, DataTable dt,
-            DynamicParameters extraParam = null)
-        {
-            return ImportAsync(procedureName, paramName, paramTableTypeName, dt, extraParam)
-                .GetAwaiter()
-                .GetResult();
-        }
-
         #endregion
 
         #region ImportAsync
+        
+        public async Task< IEnumerable<T>> ListAsync<T, P>(string procedureName, string paramName, string paramTableTypeName,
+            IList<P> list, object extraParam = null)
+        {
+            var QueryConnection = NewQueryConnection();
+
+            var param = new DynamicParameters();
+
+            param.Add($"@{paramName}", list.ToDataTableAdvance().AsTableValuedParameter(paramTableTypeName));
+
+            if (extraParam != null) param.AddDynamicParams(extraParam);
+
+            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+
+            var result = await QueryConnection.Connection.QueryAsync<T>(
+                procedureName,
+                param,
+                dbTransaction,
+                commandType: CommandType.StoredProcedure);
+
+            if (QueryConnection.Connection.State == ConnectionState.Open
+                && keepConnectionClosed)
+                QueryConnection.Connection.Close();
+
+            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+
+            return result;
+        }
 
         public async Task<int> ImportAsync(string procedureName, string paramName, string paramTableTypeName,
             DataTable dt, object extraParam = null)
@@ -517,60 +537,10 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public async Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName,
+        public Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName,
             IList<P> list, object extraParam = null)
         {
-            var (IsNew, Connection) = NewQueryConnection();
-
-            var param = new DynamicParameters();
-
-            var dt = list.ToDataTableAdvance();
-
-            param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
-
-            if (extraParam != null) param.AddDynamicParams(extraParam);
-
-            if (Connection.State == ConnectionState.Closed) Connection.Open();
-
-            var result = await Connection.ExecuteAsync(
-                procedureName,
-                param,
-                dbTransaction,
-                commandType: CommandType.StoredProcedure);
-
-            if (Connection.State == ConnectionState.Open
-                && keepConnectionClosed)
-                Connection.Close();
-
-            if (newConnectionOnEachProcess) Connection.Dispose();
-
-            return result;
-        }
-
-        public async Task<int> ImportAsync(string procedureName, string paramName, string paramTableTypeName,
-            DataTable dt, DynamicParameters extraParam = null)
-        {
-            var QueryConnection = NewQueryConnection();
-
-            if (extraParam == null) extraParam = new DynamicParameters();
-
-            extraParam.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
-
-            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
-
-            var result = await QueryConnection.Connection.ExecuteAsync(
-                procedureName,
-                extraParam,
-                dbTransaction,
-                commandType: CommandType.StoredProcedure);
-
-            if (QueryConnection.Connection.State == ConnectionState.Open
-                && keepConnectionClosed)
-                QueryConnection.Connection.Close();
-
-            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
-
-            return result;
+            return ImportAsync(procedureName, paramName, paramTableTypeName, list.ToDataTableAdvance(), extraParam);
         }
 
         #endregion
