@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
-using E.S.Data.Query.DataQuery.Interfaces;
 
 namespace E.S.Data.Query.DataAccess.Interfaces
 {
@@ -103,9 +102,6 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         Task<T> FirstOrDefaultQueryAsync<T, P>(string query, P param);
         Task<T> FirstOrDefaultQueryAsync<T>(string query, object param);
         Task<T> FirstOrDefaultQueryAsync<T>(string query);
-
-        //NewIQuery
-        IDataImportQuery NewDataImportQuery();
-        IDataExecuteQuery NewDataExecuteQuery();
+        
     }
 }

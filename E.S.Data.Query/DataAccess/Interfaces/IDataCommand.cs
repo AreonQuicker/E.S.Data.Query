@@ -7,7 +7,6 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         IDbConnection DbConnection { get; }
         void BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted);
         void Commit();
-        void Dispose();
         void Rollback();
     }
 }

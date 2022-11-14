@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using Dapper;
 using E.S.Common.Helpers.Extensions;
 using E.S.Data.Query.DataAccess.Interfaces;
-using E.S.Data.Query.DataQuery.Interfaces;
 using E.S.Data.Query.Extensions;
-using static E.S.Data.Query.DataQuery.Core.DataQueryInstance;
 
 namespace E.S.Data.Query.DataAccess.Core
 {
@@ -147,9 +145,9 @@ namespace E.S.Data.Query.DataAccess.Core
             IEnumerable<T2> Second;
 
             using (var multi = QueryConnection.Connection.QueryMultiple(procedureName,
-                dynamicParameters,
-                dbTransaction,
-                commandType: CommandType.StoredProcedure))
+                       dynamicParameters,
+                       dbTransaction,
+                       commandType: CommandType.StoredProcedure))
             {
                 First = multi.Read<T1>().ToList();
                 Second = multi.Read<T2>().ToList();
@@ -480,8 +478,9 @@ namespace E.S.Data.Query.DataAccess.Core
         #endregion
 
         #region ImportAsync
-        
-        public async Task< IEnumerable<T>> ListAsync<T, P>(string procedureName, string paramName, string paramTableTypeName,
+
+        public async Task<IEnumerable<T>> ListAsync<T, P>(string procedureName, string paramName,
+            string paramTableTypeName,
             IList<P> list, object extraParam = null)
         {
             var QueryConnection = NewQueryConnection();
@@ -619,17 +618,6 @@ namespace E.S.Data.Query.DataAccess.Core
         #endregion
 
         #region NewQuery
-
-        public IDataImportQuery NewDataImportQuery()
-        {
-            return new DataImportQuery(this);
-        }
-
-        public IDataExecuteQuery NewDataExecuteQuery()
-        {
-            return new DataExecuteQuery(this);
-        }
-
         #endregion
 
         #endregion

@@ -1,7 +1,6 @@
 ﻿using E.S.Data.Query.DataAccess.Core;
 using E.S.Data.Query.DataAccess.Interfaces;
-using E.S.Data.Query.DataQuery.Core;
-using E.S.Data.Query.DataQuery.Interfaces;
+using E.S.Simple.MemoryCache;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace E.S.Data.Query
@@ -15,26 +14,35 @@ namespace E.S.Data.Query
             bool keepConnectionClosed = true,
             bool addDataAccessQueryAsTransient = true)
         {
-            services.AddScoped<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
+            services.AddSimpleMemoryCache();
 
-            services.AddScoped<IDataConnection, DataConnection>();
+            services.AddTransient<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
 
-            services.AddScoped<IDataProvider, DataProvider>();
+            services.AddTransient<IDataConnection, DataConnection>();
+
+            services.AddTransient<IDataProvider, DataProvider>();
 
             if (addDataAccessQueryAsTransient)
+            {
                 services.AddTransient<IDataAccessQuery>(s =>
                     new DataAccessQuery(
                         s.GetService<ICreateDbConnection>(),
                         newConnectionOnEachProcess,
                         keepConnectionClosed));
+                
+                services.AddTransient<IDataCacheListQuery, DataCacheListQuery>();
+            }
+
             else
+            {
                 services.AddScoped<IDataAccessQuery>(s =>
                     new DataAccessQuery(
                         s.GetService<ICreateDbConnection>(),
                         newConnectionOnEachProcess,
                         keepConnectionClosed));
-
-            services.AddTransient<IDataQueryInstance, DataQueryInstance>();
+                
+                services.AddScoped<IDataCacheListQuery, DataCacheListQuery>();
+            }
         }
     }
 }
