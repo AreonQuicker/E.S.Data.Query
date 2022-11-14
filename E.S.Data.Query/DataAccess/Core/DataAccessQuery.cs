@@ -167,6 +167,115 @@ namespace E.S.Data.Query.DataAccess.Core
             return ListMultiple<T1, T2>(procedureName, param);
         }
 
+        public (IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third) ListMultiple<T1, T2, T3>(string procedureName, object param)
+        {
+            var dynamicParameters = param.ToInputDynamicParameters();
+
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+
+            IEnumerable<T1> First;
+            IEnumerable<T2> Second;
+            IEnumerable<T3> Third;
+
+            using (var multi = QueryConnection.Connection.QueryMultiple(procedureName,
+                       dynamicParameters,
+                       dbTransaction,
+                       commandType: CommandType.StoredProcedure))
+            {
+                First = multi.Read<T1>().ToList();
+                Second = multi.Read<T2>().ToList();
+                Third = multi.Read<T3>().ToList();
+            }
+
+            if (QueryConnection.Connection.State == ConnectionState.Open
+                && keepConnectionClosed)
+                QueryConnection.Connection.Close();
+
+            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+
+            return (First, Second, Third);
+        }
+
+        public (IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third) ListMultiple<T1, T2, T3, P>(string procedureName, P param)
+        {
+            return ListMultiple<T1, T2, T3>(procedureName, param);
+        }
+
+        #endregion
+
+        #region ListMultipleAsync
+
+        public async Task<(IEnumerable<T1> First, IEnumerable<T2> Second)> ListMultipleAsync<T1, T2>(string procedureName, object param)
+        {
+            var dynamicParameters = param.ToInputDynamicParameters();
+
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+
+            IEnumerable<T1> First;
+            IEnumerable<T2> Second;
+
+            using (var multi = await QueryConnection.Connection.QueryMultipleAsync(procedureName,
+                       dynamicParameters,
+                       dbTransaction,
+                       commandType: CommandType.StoredProcedure))
+            {
+                First = multi.Read<T1>().ToList();
+                Second = multi.Read<T2>().ToList();
+            }
+
+            if (QueryConnection.Connection.State == ConnectionState.Open
+                && keepConnectionClosed)
+                QueryConnection.Connection.Close();
+
+            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+
+            return (First, Second);
+        }
+
+        public async Task<(IEnumerable<T1> First, IEnumerable<T2> Second)> ListMultipleAsync<T1, T2, P>(string procedureName, P param)
+        {
+            return await ListMultipleAsync<T1, T2>(procedureName, param);
+        }
+
+        public async Task<(IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third)> ListMultipleAsync<T1, T2, T3>(string procedureName, object param)
+        {
+            var dynamicParameters = param.ToInputDynamicParameters();
+
+            var QueryConnection = NewQueryConnection();
+
+            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+
+            IEnumerable<T1> First;
+            IEnumerable<T2> Second;
+            IEnumerable<T3> Third;
+
+            using (var multi = await QueryConnection.Connection.QueryMultipleAsync(procedureName,
+                       dynamicParameters,
+                       dbTransaction,
+                       commandType: CommandType.StoredProcedure))
+            {
+                First = multi.Read<T1>().ToList();
+                Second = multi.Read<T2>().ToList();
+                Third = multi.Read<T3>().ToList();
+            }
+
+            if (QueryConnection.Connection.State == ConnectionState.Open
+                && keepConnectionClosed)
+                QueryConnection.Connection.Close();
+
+            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+
+            return (First, Second, Third);
+        }
+
+        public async Task<(IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third)> ListMultipleAsync<T1, T2, T3, P>(string procedureName, P param)
+        {
+            return await ListMultipleAsync<T1, T2, T3>(procedureName, param);
+        }
         #endregion
 
         #region First

@@ -76,6 +76,21 @@ namespace E.S.Data.Query.DataAccess.Interfaces
 
         (IEnumerable<T1> First, IEnumerable<T2> Second) ListMultiple<T1, T2>(string procedureName, object param);
 
+
+        (IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third) ListMultiple<T1, T2, T3, P>(string procedureName, P param);
+
+        (IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third) ListMultiple<T1, T2, T3>(string procedureName, object param);
+
+        //ListMultipleAsync
+        Task<(IEnumerable<T1> First, IEnumerable<T2> Second)> ListMultipleAsync<T1, T2, P>(string procedureName, P param);
+
+        Task<(IEnumerable<T1> First, IEnumerable<T2> Second)> ListMultipleAsync<T1, T2>(string procedureName, object param);
+
+
+        Task<(IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third)> ListMultipleAsync<T1, T2, T3, P>(string procedureName, P param);
+
+        Task<(IEnumerable<T1> First, IEnumerable<T2> Second, IEnumerable<T3> Third)> ListMultipleAsync<T1, T2, T3>(string procedureName, object param);
+
         //Import
         int Import(string procedureName, string paramName, string paramTableTypeName, DataTable dt,
             object extraParam = null);
@@ -89,8 +104,8 @@ namespace E.S.Data.Query.DataAccess.Interfaces
 
         Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
             object extraParam = null);
-        
-        Task<IEnumerable<T>> ListAsync<T,P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
+
+        Task<IEnumerable<T>> ListAsync<T, P>(string procedureName, string paramName, string paramTableTypeName, IList<P> list,
             object extraParam = null);
 
         //ListQueryAsync
@@ -102,6 +117,6 @@ namespace E.S.Data.Query.DataAccess.Interfaces
         Task<T> FirstOrDefaultQueryAsync<T, P>(string query, P param);
         Task<T> FirstOrDefaultQueryAsync<T>(string query, object param);
         Task<T> FirstOrDefaultQueryAsync<T>(string query);
-        
+
     }
 }
