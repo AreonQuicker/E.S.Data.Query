@@ -119,14 +119,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<IEnumerable<T>> ListAsync<T, P>(string procedureName, P param, int? commandTimeout = 700)
+        public async Task<IEnumerable<T>> ListAsync<T, P>(string procedureName, P param, int? commandTimeout = 700)
         {
-            return ListAsync<T>(procedureName, param, commandTimeout);
+            return await ListAsync<T>(procedureName, param, commandTimeout);
         }
 
-        public Task<IEnumerable<T>> ListAsync<T>(string procedureName, int? commandTimeout = 700)
+        public async Task<IEnumerable<T>> ListAsync<T>(string procedureName, int? commandTimeout = 700)
         {
-            return ListAsync<T>(procedureName, null, commandTimeout);
+            return await ListAsync<T>(procedureName, null, commandTimeout);
         }
 
         #endregion
@@ -281,14 +281,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<T> FirstAsync<T, P>(string procedureName, P param)
+        public async Task<T> FirstAsync<T, P>(string procedureName, P param)
         {
-            return FirstAsync<T>(procedureName, param);
+            return await FirstAsync<T>(procedureName, param);
         }
 
-        public Task<T> FirstAsync<T>(string procedureName)
+        public async Task<T> FirstAsync<T>(string procedureName)
         {
-            return FirstAsync<T>(procedureName, null);
+            return await FirstAsync<T>(procedureName, null);
         }
 
         #endregion
@@ -339,14 +339,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<T> FirstOrDefaultAsync<T, P>(string procedureName, P param)
+        public async Task<T> FirstOrDefaultAsync<T, P>(string procedureName, P param)
         {
-            return FirstOrDefaultAsync<T>(procedureName, param);
+            return await FirstOrDefaultAsync<T>(procedureName, param);
         }
 
-        public Task<T> FirstOrDefaultAsync<T>(string procedureName)
+        public async Task<T> FirstOrDefaultAsync<T>(string procedureName)
         {
-            return FirstOrDefaultAsync<T>(procedureName, null);
+            return await FirstOrDefaultAsync<T>(procedureName, null);
         }
 
         #endregion
@@ -398,14 +398,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<T> ExecuteScalarAsync<T, P>(string procedureName, P param, int? commandTimeout = 700)
+        public async Task<T> ExecuteScalarAsync<T, P>(string procedureName, P param, int? commandTimeout = 700)
         {
-            return ExecuteScalarAsync<T>(procedureName, param, commandTimeout);
+            return await ExecuteScalarAsync<T>(procedureName, param, commandTimeout);
         }
 
-        public Task<T> ExecuteScalarAsync<T>(string procedureName, int? commandTimeout = 700)
+        public async Task<T> ExecuteScalarAsync<T>(string procedureName, int? commandTimeout = 700)
         {
-            return ExecuteScalarAsync<T>(procedureName, null, commandTimeout);
+            return await ExecuteScalarAsync<T>(procedureName, null, commandTimeout);
         }
 
         #endregion
@@ -452,9 +452,9 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<int> ExecuteAsync(string procedureName, int? commandTimeout = 700)
+        public async Task<int> ExecuteAsync(string procedureName, int? commandTimeout = 700)
         {
-            return ExecuteAsync(procedureName, null, commandTimeout);
+            return await ExecuteAsync(procedureName, null, commandTimeout);
         }
 
         #endregion
@@ -602,10 +602,11 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName,
+        public async Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName,
             IList<P> list, object extraParam = null)
         {
-            return ImportAsync(procedureName, paramName, paramTableTypeName, list.ToDataTableAdvance(), extraParam);
+            return await ImportAsync(procedureName, paramName, paramTableTypeName, list.ToDataTableAdvance(),
+                extraParam);
         }
 
         #endregion
@@ -635,14 +636,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<IEnumerable<T>> ListQueryAsync<T, P>(string query, P param, int? commandTimeout = 700)
+        public async Task<IEnumerable<T>> ListQueryAsync<T, P>(string query, P param, int? commandTimeout = 700)
         {
-            return ListQueryAsync<T>(query, param, commandTimeout);
+            return await ListQueryAsync<T>(query, param, commandTimeout);
         }
 
-        public Task<IEnumerable<T>> ListQueryAsync<T>(string query, int? commandTimeout = 700)
+        public async Task<IEnumerable<T>> ListQueryAsync<T>(string query, int? commandTimeout = 700)
         {
-            return ListQueryAsync<T>(query, null, commandTimeout);
+            return await ListQueryAsync<T>(query, null, commandTimeout);
         }
 
         #endregion
@@ -671,14 +672,14 @@ namespace E.S.Data.Query.DataAccess.Core
             return result;
         }
 
-        public Task<T> FirstOrDefaultQueryAsync<T, P>(string query, P param)
+        public async Task<T> FirstOrDefaultQueryAsync<T, P>(string query, P param)
         {
-            return FirstOrDefaultQueryAsync<T>(query, param);
+            return await FirstOrDefaultQueryAsync<T>(query, param);
         }
 
-        public Task<T> FirstOrDefaultQueryAsync<T>(string query)
+        public async Task<T> FirstOrDefaultQueryAsync<T>(string query)
         {
-            return FirstOrDefaultQueryAsync<T>(query, null);
+            return await FirstOrDefaultQueryAsync<T>(query, null);
         }
 
         #endregion
