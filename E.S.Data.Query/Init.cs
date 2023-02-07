@@ -16,7 +16,7 @@ namespace E.S.Data.Query
         {
             services.AddSimpleMemoryCache();
 
-            services.AddTransient<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
+            services.AddScoped<ICreateDbConnection>(s => new CreateSQLDbConnection(connectionString));
 
             services.AddTransient<IDataConnection, DataConnection>();
 
@@ -29,7 +29,7 @@ namespace E.S.Data.Query
                         s.GetService<ICreateDbConnection>(),
                         newConnectionOnEachProcess,
                         keepConnectionClosed));
-                
+
                 services.AddTransient<IDataCacheListQuery, DataCacheListQuery>();
             }
 
@@ -40,7 +40,7 @@ namespace E.S.Data.Query
                         s.GetService<ICreateDbConnection>(),
                         newConnectionOnEachProcess,
                         keepConnectionClosed));
-                
+
                 services.AddScoped<IDataCacheListQuery, DataCacheListQuery>();
             }
         }

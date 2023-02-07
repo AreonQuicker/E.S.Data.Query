@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -36,6 +37,7 @@ namespace E.S.Data.Query.DataAccess.Core
         public void Dispose()
         {
             CloseConnection();
+            dbConnection?.Dispose();
         }
 
         #endregion
@@ -549,7 +551,7 @@ namespace E.S.Data.Query.DataAccess.Core
             string paramTableTypeName,
             IList<P> list, object extraParam = null)
         {
-            var QueryConnection = NewQueryConnection();
+            var queryConnection = NewQueryConnection();
 
             var param = new DynamicParameters();
 
@@ -557,19 +559,19 @@ namespace E.S.Data.Query.DataAccess.Core
 
             if (extraParam != null) param.AddDynamicParams(extraParam);
 
-            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+            if (queryConnection.Connection.State == ConnectionState.Closed) queryConnection.Connection.Open();
 
-            var result = await QueryConnection.Connection.QueryAsync<T>(
+            var result = await queryConnection.Connection.QueryAsync<T>(
                 procedureName,
                 param,
                 dbTransaction,
                 commandType: CommandType.StoredProcedure);
 
-            if (QueryConnection.Connection.State == ConnectionState.Open
+            if (queryConnection.Connection.State == ConnectionState.Open
                 && keepConnectionClosed)
-                QueryConnection.Connection.Close();
+                queryConnection.Connection.Close();
 
-            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+            if (newConnectionOnEachProcess) queryConnection.Connection.Dispose();
 
             return result;
         }
@@ -577,29 +579,50 @@ namespace E.S.Data.Query.DataAccess.Core
         public async Task<int> ImportAsync(string procedureName, string paramName, string paramTableTypeName,
             DataTable dt, object extraParam = null)
         {
-            var QueryConnection = NewQueryConnection();
+            //Create new sql connection scope
+            using (SqlConnection connection = new SqlConnection(createDbConnection.ConnectionString))
+            {
+                connection.Open();
 
-            var param = new DynamicParameters();
+                var param = new DynamicParameters();
 
-            param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
+                param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
 
-            if (extraParam != null) param.AddDynamicParams(extraParam);
+                if (extraParam != null) param.AddDynamicParams(extraParam);
 
-            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+                var result = await connection.ExecuteAsync(
+                    procedureName,
+                    param,
+                    //dbTransaction,
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 120);
 
-            var result = await QueryConnection.Connection.ExecuteAsync(
-                procedureName,
-                param,
-                dbTransaction,
-                commandType: CommandType.StoredProcedure);
+                return result;
+            }
 
-            if (QueryConnection.Connection.State == ConnectionState.Open
-                && keepConnectionClosed)
-                QueryConnection.Connection.Close();
-
-            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
-
-            return result;
+            // var queryConnection = NewQueryConnection();
+            //
+            // var param = new DynamicParameters();
+            //
+            // param.Add($"@{paramName}", dt.AsTableValuedParameter(paramTableTypeName));
+            //
+            // if (extraParam != null) param.AddDynamicParams(extraParam);
+            //
+            // if (queryConnection.Connection.State == ConnectionState.Closed) queryConnection.Connection.Open();
+            //
+            // var result = await queryConnection.Connection.ExecuteAsync(
+            //     procedureName,
+            //     param,
+            //     dbTransaction,
+            //     commandType: CommandType.StoredProcedure);
+            //
+            // if (queryConnection.Connection.State == ConnectionState.Open
+            //     && keepConnectionClosed)
+            //     queryConnection.Connection.Close();
+            //
+            // if (newConnectionOnEachProcess) queryConnection.Connection.Dispose();
+            //
+            // return result;
         }
 
         public async Task<int> ImportAsync<P>(string procedureName, string paramName, string paramTableTypeName,
