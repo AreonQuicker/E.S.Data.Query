@@ -322,23 +322,36 @@ namespace E.S.Data.Query.DataAccess.Core
         {
             var dynamicParameters = param.ToInputDynamicParameters();
 
-            var QueryConnection = NewQueryConnection();
+            using (SqlConnection connection = new SqlConnection(createDbConnection.ConnectionString))
+            {
+                connection.Open();
 
-            if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+                var result = await connection.QueryFirstOrDefaultAsync<T>(
+                    procedureName,
+                    dynamicParameters,
+                    dbTransaction,
+                    commandType: CommandType.StoredProcedure);
 
-            var result = await QueryConnection.Connection.QueryFirstOrDefaultAsync<T>(
-                procedureName,
-                dynamicParameters,
-                dbTransaction,
-                commandType: CommandType.StoredProcedure);
+                return result;
+            }
 
-            if (QueryConnection.Connection.State == ConnectionState.Open
-                && keepConnectionClosed)
-                QueryConnection.Connection.Close();
-
-            if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
-
-            return result;
+            // var QueryConnection = NewQueryConnection();
+            //
+            // if (QueryConnection.Connection.State == ConnectionState.Closed) QueryConnection.Connection.Open();
+            //
+            // var result = await QueryConnection.Connection.QueryFirstOrDefaultAsync<T>(
+            //     procedureName,
+            //     dynamicParameters,
+            //     dbTransaction,
+            //     commandType: CommandType.StoredProcedure);
+            //
+            // if (QueryConnection.Connection.State == ConnectionState.Open
+            //     && keepConnectionClosed)
+            //     QueryConnection.Connection.Close();
+            //
+            // if (newConnectionOnEachProcess) QueryConnection.Connection.Dispose();
+            //
+            // return result;
         }
 
         public async Task<T> FirstOrDefaultAsync<T, P>(string procedureName, P param)

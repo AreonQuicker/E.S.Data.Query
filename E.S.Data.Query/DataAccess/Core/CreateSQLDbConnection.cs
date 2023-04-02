@@ -4,7 +4,7 @@ using E.S.Data.Query.DataAccess.Interfaces;
 
 namespace E.S.Data.Query.DataAccess.Core
 {
-    internal class CreateSQLDbConnection : ICreateDbConnection
+    public class CreateSQLDbConnection : ICreateDbConnection
     {
         #region Private Read Only Fields
 
